@@ -6,10 +6,7 @@ package etu001991.framework.servlet;
  */
 import etu001991.framework.ModelView;
 import etu001991.framework.Find_annotation;
-import etu001991.framework.Mapping;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Enumeration;
 import java.util.HashMap;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,12 +15,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import etu001991.framework.Mapping;
-import java.lang.reflect.Method;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.servlet.RequestDispatcher;
 
 
@@ -44,9 +39,9 @@ public class FrontServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     HashMap<String,Mapping>  mappinUrls;
-    
-       public void init() throws ServletException{
-        mappinUrls=new HashMap<String,Mapping>();
+     @Override
+     public void init() throws ServletException{
+        mappinUrls=new HashMap<>();
         List<Find_annotation.AnnotatedMethod> annotatedMethods;
         try {
             annotatedMethods = Find_annotation.findAnnotatedMethods();
@@ -78,7 +73,7 @@ public class FrontServlet extends HttpServlet {
         }*/
              throws ServletException, IOException {
     
-        PrintWriter out = response.getWriter();
+      /*   PrintWriter out = response.getWriter();
           for (Map.Entry<String,Mapping> entry : mappinUrls.entrySet()) {
             
             out.println("KEY--> "+entry.getKey() + " ,VALUE:--> Class :" +entry.getValue().getClassName() + " , Method : " + entry.getValue().getMethod());
@@ -118,48 +113,51 @@ public class FrontServlet extends HttpServlet {
             }  
         } catch (Exception e) {
           out.print(e.getMessage());
-        }  
+        }  */
      
+           PrintWriter out = response.getWriter();
+          
+        String url = request.getRequestURI();
        
+        try {  
+            url = url.split("/")[2];
+            if (mappinUrls.containsKey(url)) {
+                Mapping mapping = mappinUrls.get(url);
+                Class cl = Class.forName(mapping.getClassName());
+                Object obj = cl.getMethod(mapping.getMethod()).invoke(cl.getConstructor().newInstance());
+                if (obj.getClass() == ModelView.class) {
+                    ModelView mv = (ModelView) obj;
+                    
+                    for (Map.Entry<String, Object> data : mv.getData().entrySet()) {
+                        request.setAttribute(data.getKey(), data.getValue());
+                    }   
+                    
+                    RequestDispatcher dispat = request.getRequestDispatcher(mv.getViewname()); 
+                    dispat.forward(request,response);
+                } else {
+                    throw new Exception("ERREUR DE RETOUR ");
+                }
+            } else {
+                throw new Exception("Url Not Found");
+            }
+        } catch (Exception e) {
+            out.print(e.getMessage());
+        }
          
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+ 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
-         
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
-        
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
