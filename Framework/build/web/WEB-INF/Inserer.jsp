@@ -1,8 +1,4 @@
-<%-- 
-    Document   : Inserer
-    Created on : 7 mars 2023, 11:42:19
-    Author     : antonio
---%>
+
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
