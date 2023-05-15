@@ -6,11 +6,18 @@ package model;
 
 import etu001991.framework.ModelView;
 import etu001991.framework.Url;
+import java.util.Date;
 import java.util.Vector;
+
+/**
+ *
+ * @author sabi
+ */
 public class Dept {
      int id;
     String nom;
     String loc;
+    Date date;
    public Dept(){}
 
     public Dept(int id, String nom,String loc) {
@@ -20,6 +27,12 @@ public class Dept {
     }
      public int getId() {
         return id;
+    }
+    public String getloc() {
+        return loc;
+    }
+    public void setLoc(String loc) {
+        this.loc = loc;
     }
 
     public void setId(int id) {
@@ -32,6 +45,13 @@ public class Dept {
 
     public void setNom(String nom) {
         this.nom = nom;
+    }
+       public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
     
 //  @Url(name = "dept-all")
@@ -71,9 +91,19 @@ public class Dept {
         ModelView mv = new ModelView();
         mv.setViewname("ListDept.jsp");
         mv.addItem("list", list);
+        return mv;
+    }
+        @Url(name="ajouter")
+    public ModelView saveDept(){
+                
+        ModelView mv = new ModelView();
+        
+        Vector<Dept> list = new Vector();
+        list.add(this);
+        
+        mv.setViewname("AjoutDept.jsp");
+        mv.addItem("list", list);
         
         return mv;
     }
 }
-    
-
