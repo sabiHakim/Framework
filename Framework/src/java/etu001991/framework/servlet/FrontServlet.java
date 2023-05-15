@@ -4,6 +4,7 @@ package etu001991.framework.servlet;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
+import etu001991.framework.DateEditor;
 import etu001991.framework.ModelView;
 import etu001991.framework.Find_annotation;
 import java.io.PrintWriter;
@@ -15,7 +16,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import etu001991.framework.Mapping;
+import java.beans.PropertyEditor;
+import java.beans.PropertyEditorManager;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -124,16 +129,43 @@ public class FrontServlet extends HttpServlet {
             if (mappinUrls.containsKey(url)) {
                 Mapping mapping = mappinUrls.get(url);
                 Class cl = Class.forName(mapping.getClassName());
-                Object obj = cl.getMethod(mapping.getMethod()).invoke(cl.getConstructor().newInstance());
-                if (obj.getClass() == ModelView.class) {
-                    ModelView mv = (ModelView) obj;
-                    
+                Object obj = cl.getConstructor().newInstance();
+//                Object obj = cl.getMethod(mapping.getMethod()).invoke(cl.getConstructor().newInstance());
+             //--Sprint7
+                Field[] attributs = cl.getDeclaredFields();
+                for (int i = 0; i < attributs.length; i++) {
+                    String param = request.getParameter(attributs[i].getName());
+                    if(param!=null){
+                        String setter = "set"+attributs[i].getName().substring(0, 1).toUpperCase()+ attributs[i].getName().substring(1);
+                        //out.println(setter+"("+request.getParameter(attributs[i].getName())+")");
+                        
+                        //cast 
+                        Class<?> clA = attributs[i].getType();
+                        PropertyEditor editor = PropertyEditorManager.findEditor(clA);
+                        PropertyEditorManager.registerEditor(Date.class, DateEditor.class);
+                        editor.setAsText(param);
+                        
+                        //set
+                        cl.getMethod(setter,clA).invoke(obj,editor.getValue());
+                        out.print("1");
+                    }
+                }    
+            //--end
+                Object model = cl.getMethod(mapping.getMethod()).invoke(obj);
+                if (model.getClass() == ModelView.class) {
+                    ModelView mv = (ModelView) model;
+                                    
+out.print("2");
                     for (Map.Entry<String, Object> data : mv.getData().entrySet()) {
                         request.setAttribute(data.getKey(), data.getValue());
                     }   
+                                     out.print("2");
+
                     
                     RequestDispatcher dispat = request.getRequestDispatcher(mv.getViewname()); 
                     dispat.forward(request,response);
+                                           
+
                 } else {
                     throw new Exception("ERREUR DE RETOUR ");
                 }
